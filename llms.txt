@@ -1,0 +1,38 @@
+# PIVX Name (PiNS)
+
+> Decentralized Domain Name Service for the PIVX Cryptocurrency Ecosystem (.pivx TLDs).
+
+PIVX Name (PiNS) allows PIVX users to map human-readable domain names (such as `alice.pivx` or `bob.pivx`) to PIVX Sapling addresses, enabling simple, private, and cryptographic name resolution across PIVX wallets and decentralized applications.
+
+## Key Features
+
+- **Human-Readable PIVX Handles**: Replace long PIVX Sapling addresses with short `.pivx` domain names.
+- **Sapling Integration**: Validates and binds domain names to PIVX Sapling shielded addresses (`ps1...` on mainnet, `pts1...` on testnet).
+- **ZK-Prover State Roots**: Built with zero-knowledge proof verification (SP1 zkVM guest prover) to batch-validate domain ownership and state root transitions on PIVX.
+- **Decentralized Marketplace**: Buy, sell, transfer, and update domain names with native PIVX payments (denominated in satoshis).
+- **Client-Side Privacy**: Cryptographic keys and seed phrases are stored encrypted locally in browser storage using Ed25519 signatures.
+
+## Supported Top-Level Domains (TLDs)
+
+- `.pivx` (Primary PIVX Name Service TLD)
+- `.pivx` (Compact PIVX currency TLD)
+- `.private`
+- `.secure`
+- `.safe`
+
+## Address Validation & Cryptography
+
+- **Supported Address Type**: PIVX Sapling shielded addresses — `ps1...` on mainnet, `pts1...` on testnet.
+- **Address Requirements**: Target addresses must be PIVX Sapling shielded addresses: Bech32-encoded, with the network's human-readable prefix (`ps` mainnet / `pts` testnet), a 43-byte payload (11-byte diversifier + 32-byte `pk_d`), and canonical lowercase spelling. The same rules are enforced by the indexer and by the zero-knowledge circuit.
+- **Length Constraint**: Valid Sapling addresses up to 232 characters.
+
+## Technical Specifications
+
+- **Frontend Architecture**: Modern Vanilla JS SPA with responsive glassmorphism design, multi-language i18n support (13 languages), base64url ZIP 321 memo encoding, and responsive QR code generation.
+- **Base Currency Unit**: Satoshis ($1 \text{ PIVX} = 10^8 \text{ satoshis}$).
+
+## Official Links & Resources
+
+- **Website**: https://pivx.name/
+- **GitHub Repository**: https://github.com/PIVX-Name
+- **Documentation / Rules**: https://pivx.name/
