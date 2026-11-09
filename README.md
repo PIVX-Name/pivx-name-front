@@ -1,5 +1,7 @@
 # PIVX Name Service: website and web app
 
+[![Verify live site](https://github.com/PIVX-Name/pivx-name-front/actions/workflows/verify-live.yml/badge.svg)](https://github.com/PIVX-Name/pivx-name-front/actions/workflows/verify-live.yml)
+
 The website and web app of [PIVX Name Service](https://pivx.name): short, readable names for PIVX shielded addresses, on a registry anyone can rebuild from the PIVX blockchain.
 
 - Live: https://pivx.name (the app is at https://pivx.name/app)
