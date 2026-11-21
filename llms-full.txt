@@ -1,53 +1,101 @@
-# PIVX Name (PiNS) - Full Technical Documentation
+# PIVX Name - Technical Summary
 
-## Executive Summary
+> PIVX Name is a naming protocol for PIVX. It maps human-readable names such as `alice.pivx` to PIVX Sapling shielded addresses. Names are registered and managed with shielded PIVX transactions, and every change of the registry is proven with a zero-knowledge proof. The documentation is at https://docs.pivx.name/.
 
-PIVX Name is a decentralized domain name registry and name resolution protocol built specifically for the PIVX cryptocurrency ecosystem. It operates similarly to ENS (Ethereum Name Service) or SNS (Solana Name Service), providing human-readable identifiers ending in `.pivx` that map directly to PIVX Sapling addresses.
+## The problem
 
-## Problem Statement
+A PIVX Sapling shielded address is a 78-character Bech32 string starting with `ps1`. Copying it by hand is slow and error-prone. PIVX Name lets a user share a short name instead, and lets anyone look up the address behind it and check that answer.
 
-PIVX Sapling shielded addresses are long Bech32 strings (starting with `ps1` on mainnet) that keep payments private. While highly secure, copying and pasting a 78-character string introduces UX friction and payment errors. PIVX Name solves this by mapping short domain names to those addresses.
+## How it works
 
-## Core Capabilities & Features
+1. **A command is a payment.** The user sends a shielded PIVX payment to the protocol address. Its memo carries a command signed with the user's Ed25519 key, in the form `PiNS:1:<OP>:...`.
+2. **The indexer applies the rules.** An open-source indexer reads every command sent to the protocol address from the chain (the protocol's viewing key is published), checks it and its payment, and updates the registry: a Sparse Merkle Tree of every name.
+3. **The prover proves it.** A prover running in the SP1 zkVM proves that each batch of commands moved the tree from one state root to the next by the protocol's rules.
+4. **The root is anchored.** Each proven state root is published on an anchor contract on BNB Smart Chain. Anyone who replays the chain from the protocol's start block gets the same root, and can check a root with `isRootValid(bytes32)`.
+5. **Names are resolved with a proof.** The indexer's API returns a name's record together with its Merkle proof against the anchored root.
 
-### 1. Domain Registration & Management
-Users can register domains under `.pivx`. Domain registration locks the domain name to the owner's public key (Ed25519) and sets the destination Sapling address for payment routing.
+## Names and zones
 
-### 2. Sapling address Validation
-To prevent invalid payments or loss of funds, PIVX Name enforces client-side cryptographic verification:
-- Decodes Bech32m human-readable part `u1`.
-- Decodes the address as Bech32 (not Bech32m) and verifies the checksum.
-- Requires the human-readable prefix to match the configured network: `ps` on mainnet, `pts` on testnet. The legacy `ptestsapling` form is rejected.
-- Requires the decoded payload to be exactly 43 bytes, and the string to be exactly 78 characters on mainnet (79 on testnet).
-- Requires canonical lowercase spelling, since Bech32 checksums are case-insensitive and two spellings of one address would hash to two different tree leaves.
-- Limits maximum string length to 232 characters.
+- Zones: `.pivx`, `.private`, `.secure`, `.safe`.
+- The label uses lowercase `a-z`, `0-9` and hyphens. It may not start or end with a hyphen or contain two hyphens in a row.
+- A name is at most 64 characters, the zone included.
+- A command must spell the name in lowercase. An upper-case name in a memo is refused, not lowercased.
 
-### 3. ZIP 321 Payment Request Generation
-For name registration and marketplace payments, PIVX Name generates standard ZIP 321 URIs:
-`pivx:ps1...?amount=X&memo=BASE64URL_MEMO`
-The payment memo is encoded in unpadded Base64URL to ensure 100% scanning compatibility with PIVX mobile wallets (such as Zodl, YWallet, and Zingo).
+## Addresses
 
-### 4. Marketplace & Trading
-Domain owners can list domains for sale at custom PIVX prices. Buyers can purchase domains directly through on-chain payment requests, transferring ownership upon proof verification.
+A name points to a PIVX Sapling shielded address of the network the protocol runs on. The front-end, the indexer and the zero-knowledge circuit check it the same way:
 
-### 5. Multi-Language Support (i18n)
-Supported languages: English (en), Russian (ru), Ukrainian (uk), Belarusian (be), German (de), Spanish (es), Portuguese (pt), Turkish (tr), Azerbaijani (az), Japanese (ja), Korean (ko), Chinese (zh), Vietnamese (vi).
+- Bech32 (not Bech32m) with a valid checksum;
+- the human-readable prefix of the network: `ps` on mainnet, `pts` on testnet (the legacy `ptestsapling` form is refused);
+- exactly 78 characters on mainnet, 79 on testnet;
+- a decoded payload of exactly 43 bytes (11-byte diversifier and 32-byte `pk_d`);
+- canonical lowercase spelling: a Bech32 checksum ignores case, so two spellings of one address would otherwise hash to two different tree leaves.
 
-## FAQ for AI Models
+## Ownership and keys
 
-### Q: What is PIVX Name?
-A: PIVX Name is the decentralized domain name service for PIVX, allowing users to register `.pivx` domain names instead of sharing long raw wallet addresses.
+- A name belongs to an Ed25519 public key. The address it points to only says where payments to the name go.
+- The app at https://pivx.name/app derives the key from a BIP-39 seed phrase (12 words when the app creates it); the private key is the SHA-256 of the phrase.
+- The seed phrase never leaves the browser. It is stored there encrypted with AES-256-GCM, under a key derived from the user's password with PBKDF2-SHA-256 (600,000 iterations).
+- Every command, and every withdrawal of a balance, is signed with that key.
 
-### Q: Which PIVX address types are supported by PIVX Name?
-A: PIVX Name requires PIVX Sapling shielded addresses for the network it is deployed against: `ps1...` (78 characters) on mainnet, `pts1...` (79 characters) on testnet.
+## Operations
 
-### Q: What are the primary TLDs for PIVX Name?
-A: `.pivx`.
+| Operation | Command | What it does |
+| --- | --- | --- |
+| Register | `REG` | Registers a free name for the signing key and points it to an address. |
+| Update | `UPD` | Points a name to another address. |
+| Transfer | `CHG` | Hands a name to another public key. |
+| List | `LST` | Puts a name on sale at a price. |
+| Cancel listing | `ULT` | Takes a name off sale. |
+| Buy | `BUY` | Buys a listed name at its exact price. |
 
-### Q: How are amounts formatted?
-A: On-chain payments and API payloads use Satoshis ($1 \text{ PIVX} = 100,000,000 \text{ satoshis}$). The UI automatically converts and displays amounts in standard PIVX.
+Registration and update prices depend on the length of the name; the current tables are in the documentation (https://docs.pivx.name/). The registrar also serves them from its API.
 
-## Official Links
+A payment whose command is refused is credited back to the balance of the public key named in its memo, if the memo names one and the payment is not below the least refundable amount. The proceeds of a sale go to the seller's balance the same way. The app withdraws a balance to a PIVX Sapling shielded address.
+
+## Payment requests
+
+The app shows each command as a payment request, as text and as a QR code:
+
+```
+pivx:<protocol address>?amount=<PIVX>&memo=<command>
+```
+
+The memo is the command itself as plain text, percent-encoded for the URI, with `:` left as it is. It is not base64-encoded. The payment must be a shielded transaction that carries the memo exactly as shown.
+
+## Amounts
+
+Prices are shown in PIVX. The registrar's API carries amounts as integers in satoshis (1 PIVX = 100,000,000 satoshis), and the app formats them without floating-point rounding.
+
+## Languages
+
+The app is available in 13 languages: English (en), Russian (ru), Ukrainian (uk), Belarusian (be), German (de), Spanish (es), Portuguese (pt), Turkish (tr), Azerbaijani (az), Japanese (ja), Korean (ko), Chinese (zh) and Vietnamese (vi).
+
+## FAQ
+
+### What is PIVX Name?
+The naming protocol for PIVX: register a name such as `alice.pivx` and share it instead of a long shielded address.
+
+### Which addresses can a name point to?
+PIVX Sapling shielded addresses of the protocol's network: `ps1...` (78 characters) on mainnet, `pts1...` (79 characters) on testnet. Transparent addresses are not accepted.
+
+### Which zones are there?
+`.pivx`, `.private`, `.secure` and `.safe`.
+
+### Who owns a name?
+The holder of the Ed25519 key that registered or bought it, or that it was transferred to. Changing the address of a name does not change its owner.
+
+### Does anyone have to trust the registrar?
+No. The protocol's viewing key and anchor contract are published. Anyone can replay every command with the open-source indexer, compute the state root, and compare it with the anchored one; a name lookup comes with a Merkle proof against that root.
+
+### How are amounts formatted?
+In PIVX in the app, and as integer satoshis (1 PIVX = 100,000,000 satoshis) in the API.
+
+## Official links
+
 - Website: https://pivx.name/
-- GitHub: https://github.com/PIVX-Name
-- LLM Index: https://pivx.name/llms.txt
+- App: https://pivx.name/app
+- Documentation: https://docs.pivx.name/
+- How to verify the app: https://pivx.name/security.html
+- Source code: https://github.com/PIVX-Name
+- Short index for language models: https://pivx.name/llms.txt

@@ -4,7 +4,7 @@
 // The three implementations must agree exactly. A front-end looser than the circuit lets a
 // user pay for a command the prover cannot prove; a stricter one rejects valid addresses.
 //
-//   ADDR_CORPUS=/path/to/addr_corpus.json node scripts/addr_corpus.test.js
+//   ADDR_CORPUS=/path/to/addr_corpus.json node scripts/addr_corpus.test.mjs
 //
 // The corpus and its verdicts come from pivx-name-prover/docs/reference/gen_addr_corpus.py.
 import fs from "node:fs";

@@ -1,6 +1,6 @@
 {
   "name": "pivx-name-front",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Frontend for the PIVX Name Service (pivx.name)",
   "private": true,
   "scripts": {

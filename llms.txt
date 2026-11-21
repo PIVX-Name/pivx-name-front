@@ -1,38 +1,29 @@
-# PIVX Name (PiNS)
+# PIVX Name
 
-> Decentralized Domain Name Service for the PIVX Cryptocurrency Ecosystem (.pivx TLDs).
+> A naming protocol for PIVX: human-readable names such as `alice.pivx` that point to PIVX Sapling shielded addresses, registered with one shielded PIVX transaction and proven correct with zero-knowledge proofs.
 
-PIVX Name (PiNS) allows PIVX users to map human-readable domain names (such as `alice.pivx` or `bob.pivx`) to PIVX Sapling addresses, enabling simple, private, and cryptographic name resolution across PIVX wallets and decentralized applications.
+A name is registered by sending a shielded PIVX payment to the protocol address with a command in its memo. An open-source indexer reads those commands from the chain, applies the protocol's rules and keeps the registry in a Sparse Merkle Tree; a prover (SP1 zkVM) proves every batch of changes, and the resulting state root is published on an anchor contract, so anyone can resolve a name and check the answer against it.
 
-## Key Features
+## Key facts
 
-- **Human-Readable PIVX Handles**: Replace long PIVX Sapling addresses with short `.pivx` domain names.
-- **Sapling Integration**: Validates and binds domain names to PIVX Sapling shielded addresses (`ps1...` on mainnet, `pts1...` on testnet).
-- **ZK-Prover State Roots**: Built with zero-knowledge proof verification (SP1 zkVM guest prover) to batch-validate domain ownership and state root transitions on PIVX.
-- **Decentralized Marketplace**: Buy, sell, transfer, and update domain names with native PIVX payments (denominated in satoshis).
-- **Client-Side Privacy**: Cryptographic keys and seed phrases are stored encrypted locally in browser storage using Ed25519 signatures.
+- **Zones**: `.pivx`, `.private`, `.secure`, `.safe`.
+- **Names**: lowercase `a-z`, `0-9` and hyphens, no hyphen at the start or end of the label and no two in a row; at most 64 characters including the zone.
+- **Target addresses**: PIVX Sapling shielded addresses only — Bech32 (not Bech32m), prefix `ps` on mainnet (`ps1...`, exactly 78 characters) or `pts` on testnet (`pts1...`, exactly 79 characters), a 43-byte payload, canonical lowercase. The indexer and the zero-knowledge circuit enforce the same rules.
+- **Ownership**: a name belongs to an Ed25519 public key, not to the address it points to. The app derives that key from a BIP-39 seed phrase, which it keeps in the browser only, encrypted with AES-256-GCM under a key from the user's password (PBKDF2-SHA-256).
+- **Operations**: register, update the address, transfer to another key, list for sale, cancel a listing, buy. Each is one shielded payment whose memo carries a signed command (`PiNS:1:<OP>:...`).
+- **Payment requests**: `pivx:<protocol address>?amount=<PIVX>&memo=<command>`. The memo is the command as plain text, percent-encoded for the URI (`:` left as it is); there is no base64.
+- **Amounts**: prices are in PIVX; the registrar's API carries amounts as integers in satoshis (1 PIVX = 100,000,000 satoshis).
+- **Anchor contract**: on BNB Smart Chain; check a computed state root with `isRootValid(bytes32)`.
 
-## Supported Top-Level Domains (TLDs)
+## Docs
 
-- `.pivx` (Primary PIVX Name Service TLD)
-- `.pivx` (Compact PIVX currency TLD)
-- `.private`
-- `.secure`
-- `.safe`
+- [Documentation](https://docs.pivx.name/): protocol, prices, operations, API and proofs.
+- [Trust and privacy](https://docs.pivx.name/trust-and-privacy/)
+- [Full summary for language models](https://pivx.name/llms-full.txt)
 
-## Address Validation & Cryptography
+## Links
 
-- **Supported Address Type**: PIVX Sapling shielded addresses — `ps1...` on mainnet, `pts1...` on testnet.
-- **Address Requirements**: Target addresses must be PIVX Sapling shielded addresses: Bech32-encoded, with the network's human-readable prefix (`ps` mainnet / `pts` testnet), a 43-byte payload (11-byte diversifier + 32-byte `pk_d`), and canonical lowercase spelling. The same rules are enforced by the indexer and by the zero-knowledge circuit.
-- **Length Constraint**: Valid Sapling addresses up to 232 characters.
-
-## Technical Specifications
-
-- **Frontend Architecture**: Modern Vanilla JS SPA with responsive glassmorphism design, multi-language i18n support (13 languages), base64url ZIP 321 memo encoding, and responsive QR code generation.
-- **Base Currency Unit**: Satoshis ($1 \text{ PIVX} = 10^8 \text{ satoshis}$).
-
-## Official Links & Resources
-
-- **Website**: https://pivx.name/
-- **GitHub Repository**: https://github.com/PIVX-Name
-- **Documentation / Rules**: https://pivx.name/
+- [Website](https://pivx.name/)
+- [App](https://pivx.name/app)
+- [How to verify the app](https://pivx.name/security.html)
+- [Source code (GitHub)](https://github.com/PIVX-Name)
